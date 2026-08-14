@@ -1,0 +1,7 @@
+# dsh-obsidian bundle patch: inserts the dual-face plugin row into the web
+# profile roster. Applied as a profile bundle layer (the `dsh.bundle.patch`
+# manifest field). Activate with:
+#   dsh plugin --profile <name> add link:<repo>
+- insert:
+    - id: ui-obsidian
+      name: '@deepseek-ai/dsh-client-ui-obsidian'

@@ -1,0 +1,12 @@
+node_modules
+lib
+.npm-cache
+dist
+companion/dist
+*.tsbuildinfo
+.test-build
+*.log
+activation.log
+settings*.yaml
+*.bak
+debug-*.mjs

@@ -1,0 +1,9 @@
+{
+  "id": "dsh-obsidian-bridge",
+  "name": "DSH Obsidian Bridge",
+  "version": "0.1.0",
+  "minAppVersion": "1.4.0",
+  "description": "Local HTTP bridge for the dsh-obsidian plugin: exposes the active note, editor selection, inline edits, open/command/search over 127.0.0.1 with bearer-token auth.",
+  "author": "dsh-obsidian",
+  "isDesktopOnly": true
+}
