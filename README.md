@@ -4,6 +4,8 @@
 
 The plugin exposes 25 `obsidian_*` tools. Tools and guidance are injected only into the agent whose message matches the configured trigger vocabulary; unrelated sessions do not receive the schemas.
 
+Current release: [`dsh-obsidian-v0.2.0`](https://github.com/gxpppp/dsh-obsidian/releases/tag/dsh-obsidian-v0.2.0), built for DSH [`dsh-v0.1.0-rc.7`](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.1.0-rc.7).
+
 ## Capabilities
 
 **Vault tools, available without Obsidian:**
@@ -32,13 +34,24 @@ Inline edits carry the active path, document revision, selection offsets, and ex
 
 ## Install
 
-Install the DSH host package into a profile using the normal DSH bundle workflow:
+Install the DSH host package into the profile that actually runs your agent. DSH `0.1.0-rc.7` supports npm, GitHub, and local link package specs:
 
 ```bash
-dsh plugin --profile web add <package-or-link>
+# Published package (when published to npm)
+dsh plugin --profile <profile> add @deepseek-ai/dsh-client-ui-obsidian@0.2.0
+
+# Exact GitHub release tag
+dsh plugin --profile <profile> add "github:gxpppp/dsh-obsidian#dsh-obsidian-v0.2.0"
+
+# Local development checkout
+dsh plugin --profile <profile> add "link:E:\\path\\to\\dsh-obsidian"
 ```
 
-The package remains host-only. It does not export a browser client and does not install React, REST API, or HTTP server dependencies.
+Replace `<profile>` with the profile you actually boot, such as `web` or `headless`; the profile must use DSH `0.1.0-rc.7`. After adding or upgrading, restart that profile. The exact release tag is `dsh-obsidian-v0.2.0`; the legacy rc.6 tag is `v0.1.0` and must not be mixed with the rc.7 host.
+
+The host package and Obsidian companion are separate artifacts. The package remains host-only: it does not export a browser client and does not install React, REST API, or HTTP server dependencies.
+
+The package is a DSH bundle because `package.json` declares `dsh.bundle.patch` and `cordis.patch.yml` inserts the `ui-obsidian` Cordis row. DSH discovers this metadata during `dsh plugin ... add`; no special Git tag is required for installation.
 
 Install the Obsidian companion into the vault:
 
@@ -97,6 +110,38 @@ npm run smoke:companion -- --vault "C:\\path\\to\\vault"  # requires Obsidian + 
 - `src/tools/`: Vault, knowledge, attachment, link, editor, and command tool definitions.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md), [MIGRATION.md](MIGRATION.md), and [SECURITY.md](SECURITY.md) for design details.
+
+## Publishing and DSH ecosystem
+
+DeepSeek Harness does not require community plugins to use a special Git tag, npm dist-tag, or pull request to the official Harness repository. The official repository's guidance is to add the GitHub repository topic [`dsh-plugin`](https://github.com/topics/dsh-plugin) for discoverability. This repository has that GitHub Topic and publishes its own plugin-scoped release tags such as `dsh-obsidian-v0.2.0`; the core Harness tag format `dsh-v0.1.0-rc.7` belongs to the Harness repository, not this plugin.
+
+For a release, keep these values synchronized:
+
+- `package.json.version`
+- `companion/manifest.json.version`
+- the plugin-scoped Git tag `dsh-obsidian-v<version>`
+- the DSH compatibility version documented in this README and `MIGRATION.md`
+
+The package must retain the `dsh.bundle.patch` metadata and `cordis.patch.yml` entry so DSH can discover it as a bundle. Validate with `npm run typecheck`, `npm test`, `npm run build`, `npm pack --dry-run`, and an isolated DSH profile dump before pushing a release.
+
+## Compatibility
+
+| dsh-obsidian | DSH host | Companion | Obsidian | Status |
+|---|---|---|---|---|
+| `0.2.x` / `dsh-obsidian-v0.2.0` | `0.1.0-rc.7` | `0.2.0` | Desktop `>=1.4.0` | Supported |
+| `0.1.x` / `v0.1.0` | rc.6 line | `0.1.0` | Desktop `>=1.4.0` | Legacy only |
+| `0.2.x` | rc.6 or another unsupported DSH version | any | any | Unsupported |
+
+The host and companion major/minor versions must match. The companion also requires protocol version 1 and a canonical vault identity match. `companionToken` is normally read from the matching vault's plugin `data.json`; set it explicitly only when deployment-managed secret configuration is required.
+
+## Package identities
+
+- DSH host package: `@deepseek-ai/dsh-client-ui-obsidian`
+- DSH bundle row: `ui-obsidian`
+- Obsidian companion plugin: `dsh-obsidian-bridge`
+- GitHub discovery topic: `dsh-plugin`
+
+The official DeepSeek Harness repository does not require a special Git tag, npm dist-tag, or pull request for community plugins. Its explicit ecosystem guidance is the `dsh-plugin` GitHub topic. The core tag `dsh-v0.1.0-rc.7` belongs to the Harness repository; this plugin uses `dsh-obsidian-v0.2.0`.
 
 ## Security
 
