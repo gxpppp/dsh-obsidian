@@ -1,7 +1,7 @@
 {
   "name": "@deepseek-ai/dsh-client-ui-obsidian",
   "description": "Obsidian bridge plugin (Claudian interaction port): vault file tools, active note/selection, inline edit, companion bridge. On-demand host-only plugin: obsidian_* tools inject per agent on trigger, guidance loads via the obsidian skill.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "main": "lib/index.js",
@@ -22,48 +22,49 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "build:companion": "node companion/build.mjs"
+    "test": "node scripts/test.mjs",
+    "smoke:companion": "node scripts/smoke-companion.mjs",
+    "build:companion": "node companion/build.mjs",
+    "install:companion": "node scripts/install-companion.mjs"
+  },
+  "engines": {
+    "node": ">=22.19.0"
   },
   "peerDependencies": {
-    "@deepseek-ai/cordis": "^4.0.1",
-    "@deepseek-ai/dsh-client-connection": "^0.1.0-rc.6",
-    "@deepseek-ai/dsh-client-locale": "^0.1.0-rc.6",
-    "@deepseek-ai/dsh-client-runtime": "^0.1.0-rc.6",
-    "@deepseek-ai/dsh-client-ui-settings": "^0.1.0-rc.6",
-    "@deepseek-ai/dsh-client-ui-slots": "^0.1.0-rc.6",
-    "@deepseek-ai/dsh-settings": "^0.1.0-rc.6",
-    "@deepseek-ai/dsh-system-prompt": "^0.1.0-rc.6",
-    "@deepseek-ai/dsh-tools": "^0.1.0-rc.6",
-    "react": "^18.2.0"
+    "@deepseek-ai/cordis": "4.0.1",
+    "@deepseek-ai/dsh-agent": "0.1.0-rc.7",
+    "@deepseek-ai/dsh-attachment": "0.1.0-rc.7",
+    "@deepseek-ai/dsh-llm": "0.1.0-rc.7",
+    "@deepseek-ai/dsh-settings": "0.1.0-rc.7",
+    "@deepseek-ai/dsh-skill": "0.1.0-rc.7",
+    "@deepseek-ai/dsh-system-prompt": "0.1.0-rc.7",
+    "@deepseek-ai/dsh-tools": "0.1.0-rc.7"
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "4.0.1",
-    "@deepseek-ai/dsh-client-connection": "0.1.0-rc.6",
-    "@deepseek-ai/dsh-client-locale": "0.1.0-rc.6",
-    "@deepseek-ai/dsh-client-runtime": "0.1.0-rc.6",
-    "@deepseek-ai/dsh-client-ui-settings": "0.1.0-rc.6",
-    "@deepseek-ai/dsh-client-ui-slots": "0.1.0-rc.6",
-    "@deepseek-ai/dsh-settings": "0.1.0-rc.6",
-    "@deepseek-ai/dsh-system-prompt": "0.1.0-rc.6",
-    "@deepseek-ai/dsh-tools": "0.1.0-rc.6",
+    "@deepseek-ai/dsh-agent": "0.1.0-rc.7",
+    "@deepseek-ai/dsh-attachment": "0.1.0-rc.7",
+    "@deepseek-ai/dsh-llm": "0.1.0-rc.7",
+    "@deepseek-ai/dsh-settings": "0.1.0-rc.7",
+    "@deepseek-ai/dsh-skill": "0.1.0-rc.7",
+    "@deepseek-ai/dsh-system-prompt": "0.1.0-rc.7",
+    "@deepseek-ai/dsh-tools": "0.1.0-rc.7",
+    "@deepseek-ai/schemastery": "3.18.1",
     "@types/node": "^24.0.0",
-    "@types/react": "~18.3.1",
-    "@types/react-dom": "^18.3.5",
     "esbuild": "^0.25.0",
-    "obsidian": "latest",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "schemastery": "^3.18.0",
-    "tsx": "^4.23.12",
-    "typescript": "~5.7.2",
-    "vitest": "^3.0.0"
+    "obsidian": "1.13.1",
+    "typescript": "~5.7.2"
   },
   "files": [
     "lib",
     "src",
-    "cordis.patch.yml",
-    "companion"
+    "scripts",
+    "companion",
+    "ARCHITECTURE.md",
+    "MIGRATION.md",
+    "SECURITY.md",
+    "README.md",
+    "cordis.patch.yml"
   ],
   "license": "MIT"
 }

@@ -1,6 +1,6 @@
-// Build script for dsh-obsidian (host-only since the v2 on-demand rework
-// removed the browser half).
-// - host half:   src/index.ts        -> lib/index.js   (ESM, node)
+// Build the host-only DSH plugin and its Obsidian companion.
+// - host:        src/index.ts -> lib/index.js (ESM, Node)
+// - companion:   companion/src/main.ts -> companion/dist/main.js (CJS)
 // - types:       tsc -p tsconfig.build.json -> lib/types/**
 //
 // Uses the esbuild CLI binary (not the JS API): the JS API spawns a service
@@ -32,16 +32,11 @@ runEsbuild([
   '--target=es2024',
   '--sourcemap',
   '--outfile=lib/index.js',
-  '--external:@deepseek-ai/cordis',
+  '--external:@deepseek-ai/*',
 ])
 
-// Companion plugin bundle (Obsidian bridge).
-try {
-  execFileSync(process.execPath, [join(root, 'companion', 'build.mjs')], { cwd: root, stdio: 'inherit' })
-} catch {
-  // Companion build is optional for the dsh plugin itself; report but continue.
-  console.warn('[dsh-obsidian] companion build failed (see above); the dsh plugin still works without it')
-}
+// The companion is part of the complete integration; a broken bundle fails the build.
+execFileSync(process.execPath, [join(root, 'companion', 'build.mjs')], { cwd: root, stdio: 'inherit' })
 
 // Types via tsc declaration emit (in-process, no spawn).
 execFileSync(process.execPath, [join(root, 'node_modules', 'typescript', 'bin', 'tsc'), '-p', 'tsconfig.build.json'], {

@@ -2,8 +2,8 @@
 //   node scripts/install-companion.mjs --vault <vault-path>
 // Builds companion/dist/main.js, copies manifest + main.js into
 // <vault>/.obsidian/plugins/dsh-obsidian-bridge/, and enables the plugin in
-// community-plugins.json.
-import { execFileSync } from 'node:child_process'
+// community-plugins.json. The companion communicates through a local named
+// pipe or Unix socket; it never opens a network URL.
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -19,13 +19,17 @@ if (!vault) {
   process.exit(2)
 }
 
-// Build the companion bundle first.
-execFileSync(process.execPath, [join(root, 'companion', 'build.mjs')], { cwd: root, stdio: 'inherit' })
+const bundle = join(root, 'companion', 'dist', 'main.js')
+const manifest = join(root, 'companion', 'manifest.json')
+if (!existsSync(bundle) || !existsSync(manifest)) {
+  console.error('Companion build is missing. Run `npm run build` or `npm run build:companion` before installing.')
+  process.exit(2)
+}
 
 const target = join(vault, '.obsidian', 'plugins', 'dsh-obsidian-bridge')
 mkdirSync(target, { recursive: true })
-copyFileSync(join(root, 'companion', 'dist', 'main.js'), join(target, 'main.js'))
-copyFileSync(join(root, 'companion', 'manifest.json'), join(target, 'manifest.json'))
+copyFileSync(bundle, join(target, 'main.js'))
+copyFileSync(manifest, join(target, 'manifest.json'))
 
 // Enable the plugin in community-plugins.json.
 const listPath = join(vault, '.obsidian', 'community-plugins.json')
@@ -45,5 +49,5 @@ if (!list.includes('dsh-obsidian-bridge')) {
 
 console.log(`[install-companion] installed into ${target}`)
 console.log('[install-companion] enabled in community-plugins.json')
-console.log('[install-companion] restart Obsidian (or reload the plugin), then copy the bridge token from')
-console.log('[install-companion] Obsidian settings -> DSH Obsidian Bridge into the dsh-obsidian plugin settings.')
+console.log('[install-companion] restart Obsidian (or reload the plugin).')
+console.log('[install-companion] The host reads the companion token automatically from the vault plugin data when vaultPath matches.')

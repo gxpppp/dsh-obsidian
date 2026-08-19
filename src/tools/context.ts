@@ -2,6 +2,7 @@
  * Host services handed to the tool registrars.
  */
 import type { ContentBlock } from '@deepseek-ai/dsh-llm'
+import type { AttachmentStore } from '@deepseek-ai/dsh-attachment'
 import type { Config } from '../settings/schema.ts'
 import type { ObsidianBridge } from '../bridge/bridge.ts'
 import type { VaultFs } from '../vault/vaultFs.ts'
@@ -13,6 +14,8 @@ export interface ToolHost {
   bridge: () => ObsidianBridge
   /** Current plugin config. */
   config: () => Config
+  /** Optional DSH durable image attachment store. */
+  attachments?: () => AttachmentStore | undefined
 }
 
 /** Build a text content block (the only block kind these tools emit). */

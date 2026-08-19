@@ -1,88 +1,108 @@
 # dsh-obsidian
 
-**Obsidian bridge plugin for DeepSeek Harness (DSH)** — lets the DSH agent operate an Obsidian vault through 14 `obsidian_*` tools, injected **on demand per agent** (like an unconnected MCP server until a conversation needs it).
+`dsh-obsidian` is a host-only Obsidian integration for DeepSeek Harness (DSH). The main branch targets DSH `0.1.0-rc.7` exactly. The previous rc.6 implementation is preserved on the remote branch `legacy/dsh-rc6` and at tag `v0.1.0`.
 
-Port of Claudian's Obsidian interaction surface to the DSH host process. Host-only by design: no browser UI, zero always-on prompt cost except a one-line skill catalog entry.
+The plugin exposes 25 `obsidian_*` tools. Tools and guidance are injected only into the agent whose message matches the configured trigger vocabulary; unrelated sessions do not receive the schemas.
 
-## Features
+## Capabilities
 
-- **9 vault file tools** (fs channel, Obsidian does not need to run)
-  `obsidian_list` · `obsidian_read` · `obsidian_write` · `obsidian_edit` · `obsidian_append` · `obsidian_delete` · `obsidian_move` · `obsidian_search` · `obsidian_metadata`
-- **5 editor tools** (companion bridge or Local REST API + a running Obsidian)
-  `obsidian_active` · `obsidian_inline_edit` · `obsidian_open` · `obsidian_command` · `obsidian_commands_list`
-- **On-demand activation**: tools + guidance are registered into ONE agent's scope only when a user message matches the trigger vocabulary (`obsidian`/`vault`/`笔记`/`日记`/…, configurable). Other sessions never see them — zero schema cost, like an unconnected MCP.
-- **Skill facade**: the only always-on presence is the one-line `obsidian` skill in the skill catalog; the full usage guide (intent → tool routing, vault conventions, inline-edit rules) loads on demand via the skill tool.
-- **Companion Obsidian plugin** (`companion/`): an HTTP bridge inside the vault (`127.0.0.1:<port>/api/*`, bearer token) for editor state, selection/cursor fidelity, inline edit (cursor follows the inserted text), open-to-line, command execution, notices, search.
+**Vault tools, available without Obsidian:**
+
+`obsidian_status` · `obsidian_list` · `obsidian_stat` · `obsidian_read` · `obsidian_write` · `obsidian_edit` · `obsidian_append` · `obsidian_mkdir` · `obsidian_copy` · `obsidian_move` · `obsidian_delete`
+
+The filesystem layer uses vault-relative paths, canonical realpath containment, protected dot directories, atomic writes, serialized appends, SHA-256 revisions, optimistic `if_match` conflicts, binary size limits, cancellation, and an internal trash by default.
+
+**Knowledge and Obsidian semantic tools:**
+
+`obsidian_search` · `obsidian_metadata` · `obsidian_frontmatter_update` · `obsidian_link_resolve` · `obsidian_links` · `obsidian_link_insert`
+
+Search is bounded and paginated. Metadata, frontmatter processing, backlinks, unresolved links, and Obsidian-generated links use the companion's native metadata cache and file manager when available.
+
+**Attachments:**
+
+`obsidian_attachment_add` · `obsidian_attachment_read`
+
+Attachments accept a DSH durable image reference or a vault-relative source path. Host absolute paths, URLs, dot directories, and unbounded binary payloads are rejected.
+
+**Editor and command tools, requiring the companion:**
+
+`obsidian_active` · `obsidian_inline_edit` · `obsidian_open` · `obsidian_commands_list` · `obsidian_command` · `obsidian_notice`
+
+Inline edits carry the active path, document revision, selection offsets, and expected text. A concurrent user edit or note switch returns a conflict instead of overwriting content.
 
 ## Install
 
+Install the DSH host package into a profile using the normal DSH bundle workflow:
+
 ```bash
-# as a bundle (package must be published or a local link)
 dsh plugin --profile web add <package-or-link>
-# or manual: symlink the repo into the profile node_modules and register in dsh.profile.bundles
 ```
 
-Then restart `dsh web`. The plugin is a host-only Cordis plugin row (`ui-obsidian`, `@deepseek-ai/dsh-client-ui-obsidian`).
+The package remains host-only. It does not export a browser client and does not install React, REST API, or HTTP server dependencies.
+
+Install the Obsidian companion into the vault:
+
+```bash
+node scripts/install-companion.mjs --vault "C:\\path\\to\\vault"
+```
+
+Reload Obsidian after installation. The companion stores its token in its own `data.json`; the host reads it automatically only when the configured `vaultPath` resolves to the same canonical vault.
 
 ## Configuration
 
-Configured in the web settings page (dsh-settings renders the schema; the file backend is `$DSH_HOME/settings.yaml` — changes apply hot, no restart):
+The `obsidian` namespace is rendered by DSH settings and applies live:
 
 ```yaml
 obsidian:
-  vaultPath: '<absolute path to your Obsidian vault root>'
-  mode: auto            # auto | fs | companion | rest
-  companionPort: 34567
-  companionToken: '<bearer token from .obsidian/plugins/dsh-obsidian-bridge/data.json>'
-  restUrl: http://127.0.0.1:27123   # optional Local REST API plugin
-  restToken: '<api key>'            # optional
-  autoActivate: true
-  triggerKeywords: [obsidian, vault, 笔记, 日记, 知识库, 当前笔记, 选中文本, ...]
+  vaultPath: 'C:\\path\\to\\vault'
+  mode: auto                 # auto | fs | companion
+  companionEndpoint: ''      # optional named-pipe/socket override
+  protectedPaths: [.obsidian, .trash, .git, .claudian]
+  maxTextBytes: 5242880
+  attachmentFolder: Attachments
+  maxAttachmentBytes: 26214400
+  approvalMode: dangerous    # none | dangerous | writes | all
+  commandPolicy: approval    # deny | allowlist | approval
+  commandAllowlist: []
   announceToAgent: true
+  autoActivate: true
+  triggerKeywords: [obsidian, vault, 笔记, 日记, 知识库, 当前笔记, 选中文本]
   enabled: true
 ```
 
-- `vaultPath` is required for the fs tools; set it in the settings page (or `detect` from `obsidian.json`).
-- The companion token is generated by the companion plugin inside Obsidian — copy it from `<vault>/.obsidian/plugins/dsh-obsidian-bridge/data.json` into `companionToken`. Secrets live only in the user settings file, never in this repo.
-
-## Use
-
-1. Just talk about your notes — a message containing a trigger word activates the tools for **this** session (next turn). Example: "帮我在笔记里记一下…" or "obsidian".
-2. Or load the guide explicitly: ask the agent to use the `obsidian` skill.
-3. Unrelated sessions stay clean: no obsidian tools, no guidance text.
+The schema rejects relative/nonexistent vaults, invalid sizes, unsafe protected-path entries, invalid attachment folders, and an empty command allowlist when allowlist mode is selected.
 
 ## Development
 
+Requirements: Node.js `>=22.19.0`, TypeScript 5.7, DSH `0.1.0-rc.7`, and an Obsidian desktop API-compatible development environment.
+
 ```bash
-npm install            # --ignore-scripts in sandboxed environments
-npm run typecheck      # tsc --noEmit
-npm run build          # esbuild host bundle + tsc declarations + companion
-npm test               # vitest (or: tsc -p tsconfig.tests.json && node --test --test-isolation=none .test-build/tests/*.spec.js)
+npm install --ignore-scripts
+npm run typecheck
+npm test
+npm run build
+npm run install:companion -- --vault "C:\\path\\to\\vault"
+npm run smoke:companion -- --vault "C:\\path\\to\\vault"  # requires Obsidian + companion
 ```
 
-33 `node:test` cases cover vault path normalization, vault fs semantics, editor context, bridge, and on-demand activation (trigger matching / idempotency / per-agent isolation / skill content).
+`npm test` compiles the host and tests with `tsconfig.tests.json`, then runs every compiled `*.spec.js` with Node's built-in test runner. The current suite covers 38 tests across activation, DSH IPC, editor context, vault security, revisions, binary limits, cancellation, and path normalization.
 
-Layout:
+## Architecture
 
-```
-src/
-  index.ts        # host apply: skill facade, activation watchers, settings, RPC
-  activation.ts   # on-demand activation: trigger matching + per-agent injection
-  skill.ts        # obsidian skill (one catalog line + on-demand guide)
-  vault/          # vaultPaths / vaultFs / editorContext / detect
-  bridge/         # companion + Local REST API clients
-  tools/          # 9 file tools + 5 editor tools
-  prompt/         # activated guidance section
-  settings/       # Config schema
-companion/        # the Obsidian bridge plugin (companion/src/main.ts)
-tests/            # node:test suites
-```
+- `src/index.ts`: rc.7 settings, runtime lifecycle, skill facade, and per-agent activation.
+- `src/activation.ts`: trigger matching, 25-tool scoped injection, approval policy, and reversible disposers.
+- `src/vault/`: canonical path boundary and persistent `VaultFs`.
+- `src/bridge/`: versioned JSON-lines IPC client and vault identity verification.
+- `companion/`: desktop-only Obsidian plugin using a Windows named pipe or Unix socket.
+- `src/tools/`: Vault, knowledge, attachment, link, editor, and command tool definitions.
 
-## Security notes
+See [ARCHITECTURE.md](ARCHITECTURE.md), [MIGRATION.md](MIGRATION.md), and [SECURITY.md](SECURITY.md) for design details.
 
-- Write tools have no extra approval gate (Claudian parity); tool descriptions state side effects.
-- The companion bridge listens on loopback only and requires the bearer token.
-- All vault paths are vault-relative; `.obsidian` / `.claudian` dot-directories are hidden from the file tools; traversal and symlink escapes are rejected.
+## Security
+
+The companion never requests a URL. It listens only on an OS-local IPC endpoint, requires a random 32-byte token, uses constant-time token comparison, caps messages at 1 MiB, and verifies the canonical vault identity on every session. Server-side request URLs elsewhere in the project are not used by the current main branch.
+
+Vault tools fail closed on traversal, absolute paths, control characters, protected dot directories, symlink/junction escapes, stale revisions, oversized payloads, unauthorized commands, and cancellation.
 
 ## License
 

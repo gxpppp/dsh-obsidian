@@ -1,27 +1,20 @@
-/**
- * System-prompt section announcing the Obsidian integration to every agent
- * (port of Claudian's agent-workspace guidance + inline-edit prompt rules).
- */
-
-export const SECTION_ORDER = 300
+export const SECTION_ORDER = 150
 
 export function buildObsidianGuidance(vaultPath: string | undefined, mode: string): string {
-  const vaultLine = vaultPath ? `Vault root: ${vaultPath}.` : 'Vault root: not configured yet.'
-  return `本机已安装 dsh-obsidian 插件（Claudian 交互能力移植）：${vaultLine}
-通道模式: ${mode}（fs=直读 vault 目录 / companion=Obsidian 桥插件 / rest=Local REST API / auto=自动）。
-能力与规则：
-- 所有 vault 路径必须是 vault 相对路径（正斜杠，无前导 /，无 .. 段）；.obsidian、.claudian 等点目录默认隐藏。
-- 文件工具：obsidian_list / obsidian_read / obsidian_write / obsidian_edit / obsidian_append / obsidian_delete / obsidian_move / obsidian_search / obsidian_metadata。
-- 编辑器工具（需 companion 桥或 Local REST API 且 Obsidian 运行中）：obsidian_active 读取当前活动笔记与选区/光标上下文；obsidian_inline_edit 将替换文本直接写回 Obsidian 编辑器的当前选区；obsidian_open 打开笔记（可指定行）；obsidian_command 按 id 触发任意 Obsidian 命令；obsidian_search 可用 Obsidian 索引搜索。
-- 用户提及"当前笔记/选中文本/帮我改这段"时，先调 obsidian_active 取上下文，再决定读取完整文件或直接内联编辑。
-- 内联编辑输出规范：只输出最终文本，不要客套语；保持用户语气与排版；替换内容应与选区语义一致。
-- wikilink（[[笔记名]]）与 frontmatter（--- 头）是 vault 的一等公民：写新笔记时尽量使用 vault 既有命名习惯。`
+  const vaultLine = vaultPath ? `Vault root is configured: ${vaultPath}.` : 'Vault root is not configured.'
+  return `本机已安装 dsh-obsidian：${vaultLine}
+通道模式：${mode}（fs=安全直读 vault；companion=Obsidian 原生 API 与编辑器；auto=优先 companion，必要时只对可安全降级的操作回到 fs）。
+- 工具按当前 agent 按需注入，共 25 个：status、list/stat/read/write/edit/append/mkdir/copy/move/delete、search/metadata/frontmatter_update、attachment_add/attachment_read、link_resolve/links/link_insert、active/inline_edit/open/commands_list/command/notice。
+- 所有路径必须是 vault 相对路径；绝对路径、..、dot-directory、symlink/junction 逃逸一律拒绝。
+- 更新工具优先使用 obsidian_read 返回的 revision，并传 if_match；冲突时重新读取，不能覆盖用户并发修改。
+- 编辑器工具使用 companion 返回的 path、revision、selection offsets 和 expected text；companion 不可用时不要假装成功。
+- 任意命令执行受 commandPolicy 与 DSH approval 控制；永久删除也需要显式参数和审批。
+- frontmatter、metadata cache、backlinks、unresolved links、Obsidian-generated links 和附件语义以 companion 原生 API 为准。`
 }
 
 export function buildInlineEditRules(): string {
-  return `当执行内联编辑时：
-1. 风格匹配：模仿用户的语气、缩进与标点习惯。
-2. 上下文优先：修改前先用 obsidian_read 读完整文件（或足够上下文），不要只依赖选区。
-3. 静默执行：工具调用不做解释，最终输出只有结果文本。
-4. 选区模式用替换整段，光标模式用插入；不要输出任何包裹标签，直接给出目标文本。`
+  return `当执行 obsidian_inline_edit 时：
+1. 先用 obsidian_active 获取当前 revision 和选区，再按需要读取完整文件上下文。
+2. 选区模式替换整段，光标模式在 cursor offset 插入；让 companion 校验 expected text，遇到冲突先重读。
+3. 保持用户原有语气、缩进和标点；最终只输出替换结果，不输出包裹标签。`
 }

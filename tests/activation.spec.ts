@@ -66,48 +66,69 @@ function fakeHost(): ToolHost {
   }
 }
 
-function fakeAgent(): { agent: Agent; registered: string[]; sections: unknown[] } {
+function fakeAgent(): { agent: Agent; registered: string[]; sections: unknown[]; listeners: string[] } {
   const registered: string[] = []
   const sections: unknown[] = []
+  const listeners: string[] = []
   const agent = {
+    id: 'test-agent',
     ctx: {
-      tools: { register: (t: { name: string }) => { registered.push(t.name) } },
-      systemPrompt: { section: (s: unknown) => { sections.push(s) } },
+      tools: {
+        register: (tool: { name: string }) => {
+          registered.push(tool.name)
+          return () => { registered.splice(registered.indexOf(tool.name), 1) }
+        },
+      },
+      systemPrompt: {
+        section: (section: unknown) => {
+          sections.push(section)
+          return () => { sections.splice(sections.indexOf(section), 1) }
+        },
+      },
+      on: (name: string) => {
+        listeners.push(name)
+        return () => { listeners.splice(listeners.indexOf(name), 1) }
+      },
     },
   } as unknown as Agent
-  return { agent, registered, sections }
+  return { agent, registered, sections, listeners }
 }
 
 describe('activateAgent', () => {
-  it('registers all 14 tools and one guidance section into the agent scope', () => {
-    const { agent, registered, sections } = fakeAgent()
-    activateAgent(agent, fakeHost)
-    assert.equal(registered.length, 14)
-    for (const name of ['obsidian_list', 'obsidian_read', 'obsidian_write', 'obsidian_edit',
-      'obsidian_append', 'obsidian_delete', 'obsidian_move', 'obsidian_search', 'obsidian_metadata',
-      'obsidian_active', 'obsidian_inline_edit', 'obsidian_open', 'obsidian_command', 'obsidian_commands_list']) {
-      assert.ok(registered.includes(name), `missing tool ${name}`)
-    }
+  it('registers all 25 tools, guidance, and approval policy into the agent scope', () => {
+    const { agent, registered, sections, listeners } = fakeAgent()
+    const dispose = activateAgent(agent, fakeHost)
+    assert.equal(registered.length, 25)
+    for (const name of [
+      'obsidian_status', 'obsidian_list', 'obsidian_stat', 'obsidian_read', 'obsidian_write',
+      'obsidian_edit', 'obsidian_append', 'obsidian_mkdir', 'obsidian_copy', 'obsidian_move',
+      'obsidian_delete', 'obsidian_search', 'obsidian_metadata', 'obsidian_frontmatter_update',
+      'obsidian_attachment_add', 'obsidian_attachment_read', 'obsidian_link_resolve',
+      'obsidian_links', 'obsidian_link_insert', 'obsidian_active', 'obsidian_inline_edit',
+      'obsidian_open', 'obsidian_commands_list', 'obsidian_command', 'obsidian_notice',
+    ]) assert.ok(registered.includes(name), `missing tool ${name}`)
     assert.equal(sections.length, 1)
+    assert.deepEqual(listeners, ['tools/pre-execute'])
     const section = sections[0] as { name: string; order: number; text: unknown }
     assert.equal(section.name, 'plugin:obsidian')
-    assert.equal(typeof section.text, 'function', 'section text must be a live provider')
+    assert.equal(typeof section.text, 'function')
+    dispose()
+    assert.deepEqual(registered, [])
+    assert.deepEqual(sections, [])
+    assert.deepEqual(listeners, [])
   })
 
-  it('is idempotent per agent', () => {
-    const { agent, registered } = fakeAgent()
-    activateAgent(agent, fakeHost)
-    activateAgent(agent, fakeHost)
-    assert.equal(registered.length, 14)
-  })
-
-  it('registers separately for different agents', () => {
+  it('registers independently for different agents', () => {
     const a = fakeAgent()
     const b = fakeAgent()
-    activateAgent(a.agent, fakeHost)
-    activateAgent(b.agent, fakeHost)
-    assert.equal(a.registered.length, 14)
-    assert.equal(b.registered.length, 14)
+    const disposeA = activateAgent(a.agent, fakeHost)
+    const disposeB = activateAgent(b.agent, fakeHost)
+    assert.equal(a.registered.length, 25)
+    assert.equal(b.registered.length, 25)
+    disposeA()
+    assert.equal(a.registered.length, 0)
+    assert.equal(b.registered.length, 25)
+    disposeB()
   })
 })
 
@@ -119,6 +140,8 @@ describe('buildObsidianSkill', () => {
     assert.ok(skill.description.includes('vault'))
     assert.ok(skill.content.includes('obsidian_read'))
     assert.ok(skill.content.includes('obsidian_inline_edit'))
-    assert.ok(skill.content.includes('意图 → 工具路由'))
+    assert.ok(skill.description.includes('25 个'))
+    assert.ok(skill.content.includes('obsidian_attachment_add'))
+    assert.ok(skill.content.includes('if_match'))
   })
 })
