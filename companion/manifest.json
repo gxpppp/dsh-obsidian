@@ -1,7 +1,7 @@
 {
   "id": "dsh-obsidian-bridge",
   "name": "DSH Obsidian Bridge",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "minAppVersion": "1.4.0",
   "description": "Local IPC companion for dsh-obsidian: exposes Obsidian editor, metadata, links, attachments, search, commands, and notices through a versioned authenticated named pipe or Unix socket.",
   "author": "dsh-obsidian",

@@ -61,7 +61,7 @@ function handleSocket(socket: Socket, requests: BridgeRequestEnvelope[], vaultPa
     if (request.method === 'hello') {
       respond(socket, request.requestId, true, {
         protocolVersion: BRIDGE_PROTOCOL_VERSION,
-        pluginVersion: '0.3.0',
+        pluginVersion: '0.3.1',
         obsidianVersion: '1.13.1',
         vault: canonicalVaultIdentity(vaultPath),
         capabilities: ['editor.state', 'editor.edit'],

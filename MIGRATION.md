@@ -4,7 +4,7 @@
 
 | dsh-obsidian | DSH | Branch / tag |
 |---|---|---|
-| `0.3.x` | `0.1.0-rc.8` | `main` / `dsh-obsidian-v0.3.0` |
+| `0.3.x` | `0.1.0-rc.8` | `main` / `dsh-obsidian-v0.3.1` |
 | `0.2.x` | `0.1.0-rc.7` | `legacy/dsh-rc7` / `dsh-obsidian-v0.2.0` |
 | `0.1.x` | rc.6 line | `legacy/dsh-rc6` / `v0.1.0` |
 
@@ -16,8 +16,8 @@ The release lines are intentionally separate. Do not install an rc.7 host plugin
 2. Back up `$DSH_HOME`, profile settings, session data, and the target Obsidian vault.
 3. If the profile explicitly uses SQLite session persistence, preserve the old database separately. DSH rc.8 uses an incompatible SQLite storage format and provides no in-place migration for the prerelease provider.
 4. Upgrade the DSH CLI/runtime explicitly to `0.1.0-rc.8` or npm dist-tag `next`. The default DSH npm `latest` dist-tag still points to rc.7 at the time of this release.
-5. Install dsh-obsidian `0.3.0` into the profile. Remove the rc.7 package first when the package manager does not replace a Git/link dependency cleanly.
-6. Reinstall the Obsidian companion `0.3.0` into each vault and reload Obsidian. The companion keeps IPC protocol version 1, but host and companion release versions must match.
+5. Install dsh-obsidian `0.3.1` into the profile. Remove the rc.7 package first when the package manager does not replace a Git/link dependency cleanly.
+6. Reinstall the Obsidian companion `0.3.1` into each vault and reload Obsidian. The companion keeps IPC protocol version 1, but host and companion release versions must match.
 7. Verify the profile composition before booting it against real data:
 
    ```bash
@@ -25,7 +25,7 @@ The release lines are intentionally separate. Do not install an rc.7 host plugin
    ```
 
    The output must contain the `ui-obsidian` row.
-8. Start the profile, invoke `obsidian_status`, and confirm DSH rc.8, companion `0.3.0`, protocol 1, and a matching canonical vault identity.
+8. Start the profile, invoke `obsidian_status`, and confirm DSH rc.8, companion `0.3.1`, protocol 1, and a matching canonical vault identity.
 9. Run the companion smoke test from a trusted checkout or package installation:
 
    ```bash

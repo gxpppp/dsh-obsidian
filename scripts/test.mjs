@@ -21,6 +21,5 @@ const tests = readdirSync(testDir)
 
 execFileSync(process.execPath, [
   '--test',
-  '--test-isolation=none',
   ...tests,
 ], { cwd: root, stdio: 'inherit' })

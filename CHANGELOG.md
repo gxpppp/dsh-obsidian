@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1
+
+- Keep the DSH `0.1.0-rc.8` compatibility line and companion IPC protocol version 1.
+- Make the compiled `node:test` runner compatible with the declared Node.js `22.19+` floor by removing the Node 24-only `--test-isolation` option.
+- Validate releases on both Node.js 22.19 and 24 before publishing assets.
+
 ## 0.3.0
 
 - Upgrade the host compatibility line to DSH `0.1.0-rc.8`.

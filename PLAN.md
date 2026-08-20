@@ -4,7 +4,7 @@ Last updated: 2026-08-20.
 
 ## Current target
 
-Mainline `0.3.0` supports DSH `0.1.0-rc.8` exactly and remains host-only. Previous DSH lines are immutable maintenance snapshots:
+Mainline `0.3.1` supports DSH `0.1.0-rc.8` exactly and remains host-only. Previous DSH lines are immutable maintenance snapshots:
 
 - rc.7: `legacy/dsh-rc7`, tag `dsh-obsidian-v0.2.0`
 - rc.6: `legacy/dsh-rc6`, tag `v0.1.0`
@@ -68,7 +68,7 @@ No compatibility shim is maintained between these DSH prerelease lines.
 6. `npm pack --dry-run` plus required-file inspection
 7. scan bundles for removed React/browser/HTTP/REST runtime and accidentally bundled DSH SDK
 8. install the final package or link into an isolated DSH rc.8 profile and confirm the `ui-obsidian` row with `--dump-config`
-9. install companion `0.3.0` into a disposable or backed-up desktop vault and run `npm run smoke:companion`
+9. install companion `0.3.1` into a disposable or backed-up desktop vault and run `npm run smoke:companion`
 10. confirm smoke directories, debug ports, logs, tokens, and generated release files are cleaned or excluded
 11. verify `main`, `legacy/dsh-rc7`, `legacy/dsh-rc6`, historical tags, and the new annotated release tag on origin
 

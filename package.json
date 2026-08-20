@@ -1,7 +1,7 @@
 {
   "name": "@deepseek-ai/dsh-client-ui-obsidian",
   "description": "Host-only Obsidian integration for DeepSeek Harness: 25 on-demand vault, knowledge, attachment, link, editor, and command tools with an authenticated local IPC companion.",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/types/index.d.ts",
