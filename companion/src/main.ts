@@ -40,7 +40,7 @@ interface EditorSnapshot {
   openTabs: string[]
 }
 
-const PLUGIN_VERSION = '0.2.0'
+const PLUGIN_VERSION = '0.3.0'
 const DEFAULT_SETTINGS: BridgeSettings = { token: '', enabled: true, ipcName: '' }
 const CAPABILITIES = [
   'editor.state', 'editor.edit', 'editor.open', 'search', 'metadata.get',

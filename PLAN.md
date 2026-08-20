@@ -1,25 +1,28 @@
-# dsh-obsidian 主线状态
+# dsh-obsidian mainline status
 
-最后更新：2026-08-19。
+Last updated: 2026-08-20.
 
-## 当前目标
+## Current target
 
-主线 `0.2.0` 仅支持 DSH `0.1.0-rc.7`，保持 host-only，并提供完整的 Obsidian 工具集成。rc.6 / HTTP / Local REST / browser UI 历史实现保存在 `legacy/dsh-rc6` 与 `v0.1.0`，不在主线维护兼容层。
+Mainline `0.3.0` supports DSH `0.1.0-rc.8` exactly and remains host-only. Previous DSH lines are immutable maintenance snapshots:
 
-## 已实现
+- rc.7: `legacy/dsh-rc7`, tag `dsh-obsidian-v0.2.0`
+- rc.6: `legacy/dsh-rc6`, tag `v0.1.0`
 
-- DSH rc.7 精确依赖、官方 schemastery、Node `22.19+`。
-- 25 个按 agent 动态注入的 `obsidian_*` 工具。
-- Agent 工具、prompt、审批 listener 和 skill 的可撤销生命周期。
-- rc.7 `event.data.content` 激活通道和 `exec.signal` 传播。
-- 安全 Vault 核心：路径规范化、dot-directory 保护、symlink/junction containment、原子文本/二进制写入、同路径串行、SHA-256 revision、`if_match`、trash、分页搜索和大小限制。
-- Companion v1：Windows named pipe / Unix socket、JSON Lines、1 MiB 限制、随机 Token、恒定时间比较、vault identity、超时与取消。
-- Obsidian editor、metadata cache、frontmatter、links、attachments、commands 和 Notice 路由。
-- rc.7 approval policy：危险操作、写操作、全操作和命令策略。
-- Host/companion 类型检查、Node 单元与 IPC contract 测试、host/companion 构建。
-- `README.md`、`ARCHITECTURE.md`、`MIGRATION.md`、`SECURITY.md`。
+No compatibility shim is maintained between these DSH prerelease lines.
 
-## 工具清单
+## Implemented surface
+
+- 25 per-agent, on-demand `obsidian_*` tools.
+- Reversible agent-scoped tools, prompt guidance, approval policy, and runtime skill lifecycle.
+- rc.8-compatible `execute(args, exec)`, `exec.signal`, agent events, settings validation, skill registration, and attachment store use.
+- Secure Vault filesystem: normalized paths, protected dot directories, symlink/junction containment, atomic text/binary writes, per-path serialization, SHA-256 revisions, optimistic conflicts, trash, bounded search, and size limits.
+- Companion IPC v1: Windows named pipe / Unix socket, JSON Lines, 1 MiB protocol limit, random token, constant-time comparison, canonical vault identity, timeout and cancellation.
+- Obsidian editor, metadata cache, frontmatter, links, attachments, commands, and Notice routes.
+- DSH approval policy for commands, dangerous operations, writes, or all operations.
+- Reproducible host/companion builds, package preparation, unit/contract tests, isolated DSH profile composition, and real Obsidian smoke testing.
+
+## Tool catalog
 
 1. `obsidian_status`
 2. `obsidian_list`
@@ -47,14 +50,26 @@
 24. `obsidian_command`
 25. `obsidian_notice`
 
-## 最终验收
+## rc.8-specific decisions
 
-- `npm run typecheck`
-- Companion `tsc --noEmit -p tsconfig.companion.json`
-- `npm test`
-- `npm run build`
-- Bundle 扫描确认无 React、browser RPC、HTTP server、Local REST 或内嵌 DSH SDK。
-- 在可用的真实 DSH rc.7 profile 中验证按需激活、热禁用和审批。
-- 在可用的真实 Obsidian 测试 vault 中验证选区、冲突、metadata、frontmatter、links、attachments 和 command。
+- All seven direct DSH peer/dev dependencies are pinned to `0.1.0-rc.8`; Cordis remains `4.0.1`.
+- Companion protocol remains version 1 because companion behavior is independent of the DSH host package version.
+- The rc.8 API Proxy-to-Remote note is proposed and not used by this plugin; no API Proxy or Remote migration is implemented here.
+- DSH rc.8 declares its optional SQLite persistence format incompatible. All profile E2E uses an isolated `DSH_HOME`; production session data is never opened during release validation.
+- DSH rc.8 is currently a prerelease/`next` line. Documentation must not imply npm `latest` resolves to rc.8.
 
-真实 DSH/Obsidian 环境不可用时，必须明确记录未验证项，不能以旧日志或 mock contract 冒充 E2E。
+## Release gates
+
+1. `npm ci --ignore-scripts`
+2. `npm run typecheck`
+3. `npm run check:companion`
+4. `npm test`
+5. `npm run build`
+6. `npm pack --dry-run` plus required-file inspection
+7. scan bundles for removed React/browser/HTTP/REST runtime and accidentally bundled DSH SDK
+8. install the final package or link into an isolated DSH rc.8 profile and confirm the `ui-obsidian` row with `--dump-config`
+9. install companion `0.3.0` into a disposable or backed-up desktop vault and run `npm run smoke:companion`
+10. confirm smoke directories, debug ports, logs, tokens, and generated release files are cleaned or excluded
+11. verify `main`, `legacy/dsh-rc7`, `legacy/dsh-rc6`, historical tags, and the new annotated release tag on origin
+
+A real DSH/Obsidian step that cannot run must be reported as unverified; mock or historical logs do not substitute for it.

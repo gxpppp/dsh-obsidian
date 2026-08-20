@@ -1,0 +1,43 @@
+name: release
+
+on:
+  push:
+    tags: ["dsh-obsidian-v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - run: npm install --global npm@11.17.0
+      - run: npm ci --ignore-scripts
+      - run: npm run typecheck
+      - run: npm run check:companion
+      - run: npm test
+      - run: npm run build
+      - run: npm run verify:release
+      - name: Build release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(node -p "require('./package.json').version")
+          test "$GITHUB_REF_NAME" = "dsh-obsidian-v$VERSION"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          mkdir release
+          npm pack --ignore-scripts --pack-destination release
+          mkdir companion-release
+          cp companion/dist/main.js companion/manifest.json companion-release/
+          (cd companion-release && zip -9 "../release/dsh-obsidian-bridge-$VERSION.zip" main.js manifest.json)
+          (cd release && sha256sum *.tgz *.zip > SHA256SUMS)
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" release/* --verify-tag --generate-notes --title "dsh-obsidian $VERSION"

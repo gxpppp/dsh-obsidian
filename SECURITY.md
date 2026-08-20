@@ -22,7 +22,7 @@ Text and binary writes are atomic. Per-path queues serialize updates. Read resul
 
 ## Destructive operations
 
-Deletion moves to protected internal trash by default. Permanent deletion, writes when configured, dangerous commands, and all commands under `approvalMode` are handled by the rc.7 `tools/pre-execute` approval pipeline. Unknown commands and commands returning false fail closed.
+Deletion moves to protected internal trash by default. Permanent deletion, writes when configured, dangerous commands, and all commands under `approvalMode` are handled by the DSH rc.8 `tools/pre-execute` approval pipeline. Unknown commands and commands returning false fail closed.
 
 ## Sensitive data
 

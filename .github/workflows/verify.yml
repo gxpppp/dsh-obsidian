@@ -1,0 +1,34 @@
+name: verify
+
+on:
+  push:
+    branches: [main, "legacy/**"]
+    tags: ["dsh-obsidian-v*"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22.19.0, 24]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - run: npm install --global npm@11.17.0
+      - run: npm ci --ignore-scripts
+      - run: npm run typecheck
+      - run: npm run check:companion
+      - run: npm test
+      - run: npm run build
+      - run: npm run verify:release
+      - run: npm pack --dry-run --ignore-scripts --json > npm-pack.json
+      - run: node -e "const pack=require('./npm-pack.json')[0]; if(!pack.files.some(f=>f.path==='lib/index.js')||!pack.files.some(f=>f.path==='companion/dist/main.js')) process.exit(1)"

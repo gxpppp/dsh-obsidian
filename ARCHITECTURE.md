@@ -4,7 +4,7 @@
 
 The package has one DSH host entry, `apply(ctx, config)`, and one optional Obsidian desktop companion. There is no browser client and no profile-global MCP connection.
 
-The host registers one lightweight `obsidian` skill in the global skill registry. A trigger event (`agent/inbox/inserted` or rc.7 `session/event` with `event.data.content`) activates the current agent. Tool registrations, prompt guidance, and the approval listener are all owned by that agent context and return disposers.
+The host registers one lightweight `obsidian` skill in the global skill registry. A trigger event (`agent/inbox/inserted` or the DSH `session/event` with `event.data.content`) activates the current agent. Tool registrations, prompt guidance, and the approval listener are all owned by that agent context and return disposers.
 
 ## Data paths
 
@@ -38,4 +38,4 @@ Text and binary writes use a same-directory temporary file, `fsync`, and rename.
 - `linkInsertTool.ts`: validated companion link insertion.
 - `editor.ts`: active editor, inline edit, open, command list/execute, notice.
 
-All tools use rc.7 `execute(args, exec)` and propagate `exec.signal`. The activation policy uses `tools/pre-execute` to apply command and write approval rules.
+All tools use the DSH rc.8 `execute(args, exec)` contract and propagate `exec.signal`. The activation policy uses `tools/pre-execute` to apply command and write approval rules.
