@@ -11,3 +11,4 @@ settings*.yaml
 *.bak
 debug-*.mjs
 **/dsh-obsidian-bridge/data.json
+.mimosa/
