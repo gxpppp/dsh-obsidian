@@ -1,4 +1,5 @@
-import { defineTool, type JsonValue, type ToolDefinition } from '@deepseek-ai/dsh-tools'
+import { defineTool, type ToolDefinition } from '@deepseek-ai/dsh-tools'
+import type { JsonValue } from '@deepseek-ai/dsh-util-values'
 import { requireFs, type ToolHost } from './context.ts'
 import { compact, openObjectOutput, safeModelText } from './helpers.ts'
 

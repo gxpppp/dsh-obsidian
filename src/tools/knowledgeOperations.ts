@@ -1,4 +1,4 @@
-import type { JsonValue } from '@deepseek-ai/dsh-tools'
+import type { JsonValue } from '@deepseek-ai/dsh-util-values'
 import { BridgeError } from '../bridge/bridge.ts'
 import { normalizeVaultPath } from '../vault/vaultPaths.ts'
 import type { ToolHost } from './context.ts'

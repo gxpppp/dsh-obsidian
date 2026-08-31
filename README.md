@@ -1,10 +1,10 @@
 # dsh-obsidian
 
-`dsh-obsidian` is a host-only Obsidian integration for DeepSeek Harness (DSH). The main branch targets DSH `0.1.0-rc.8` exactly. The rc.7 implementation is preserved on `legacy/dsh-rc7` and tag `dsh-obsidian-v0.2.0`; the older rc.6 implementation remains on `legacy/dsh-rc6` and tag `v0.1.0`.
+`dsh-obsidian` is a host-only Obsidian integration for DeepSeek Harness (DSH). The main branch targets DSH `0.1.2-alpha.2` exactly. Earlier prerelease lines are preserved as immutable legacy branches and tags.
 
-The plugin exposes 25 `obsidian_*` tools. Tools and guidance are injected only into the agent whose message matches the configured trigger vocabulary; unrelated sessions do not receive the schemas.
+The plugin exposes 25 `obsidian_*` tools. Tools, guidance, and approval policy are injected only into the agent whose message matches the configured trigger vocabulary; unrelated agents do not receive the schemas.
 
-Current release line: `dsh-obsidian-v0.3.1`, built for DSH [`dsh-v0.1.0-rc.8`](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.1.0-rc.8). DSH rc.8 is currently a prerelease published under npm dist-tag `next`, not `latest`.
+Current release line: `dsh-obsidian-v0.4.0`, built for DSH [`dsh-v0.1.2-alpha.2`](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.1.2-alpha.2). DSH alpha.2 is published under npm dist-tag `alpha`; `latest` and `next` still resolve to `0.1.1-rc.2`. Use the exact version for reproducible installations.
 
 ## Capabilities
 
@@ -12,19 +12,19 @@ Current release line: `dsh-obsidian-v0.3.1`, built for DSH [`dsh-v0.1.0-rc.8`](h
 
 `obsidian_status` · `obsidian_list` · `obsidian_stat` · `obsidian_read` · `obsidian_write` · `obsidian_edit` · `obsidian_append` · `obsidian_mkdir` · `obsidian_copy` · `obsidian_move` · `obsidian_delete`
 
-The filesystem layer uses vault-relative paths, canonical realpath containment, protected dot directories, atomic writes, serialized appends, SHA-256 revisions, optimistic `if_match` conflicts, binary size limits, cancellation, and an internal trash by default.
+The filesystem layer uses vault-relative paths, canonical realpath containment, protected dot directories, atomic writes, serialized appends, SHA-256 revisions, optimistic `if_match` conflicts, binary size limits, cancellation, and internal trash by default.
 
 **Knowledge and Obsidian semantic tools:**
 
 `obsidian_search` · `obsidian_metadata` · `obsidian_frontmatter_update` · `obsidian_link_resolve` · `obsidian_links` · `obsidian_link_insert`
 
-Search is bounded and paginated. Metadata, frontmatter processing, backlinks, unresolved links, and Obsidian-generated links use the companion's native metadata cache and file manager when available.
+Search is bounded and paginated. Metadata, frontmatter processing, backlinks, unresolved links, and Obsidian-generated links use the companion's native APIs when available.
 
 **Attachments:**
 
 `obsidian_attachment_add` · `obsidian_attachment_read`
 
-Attachments accept a DSH durable image reference or a vault-relative source path. Host absolute paths, URLs, dot directories, and unbounded binary payloads are rejected.
+Attachments accept an alpha.2 durable image reference or a vault-relative source path. Host absolute paths, URLs, dot directories, unbounded binary payloads, and raw binary model output are rejected.
 
 **Editor and command tools, requiring the companion:**
 
@@ -34,41 +34,51 @@ Inline edits carry the active path, document revision, selection offsets, and ex
 
 ## Install
 
-Install the DSH host package into the profile that actually runs your agent. Use DSH `0.1.0-rc.8` explicitly (`@next` or the exact version); npm's DSH `latest` dist-tag still points to rc.7. DSH supports npm, GitHub, and local link package specs:
+First install DSH `0.1.2-alpha.2` explicitly. Do not rely on npm `latest` or `next` for this line:
+
+```bash
+npm install --global @deepseek-ai/dsh@0.1.2-alpha.2 pnpm@11.7.0
+```
+
+Install the host package into the profile that runs the agent:
 
 ```bash
 # Preferred: prebuilt tarball attached to the GitHub Release
-dsh plugin --profile <profile> add "https://github.com/gxpppp/dsh-obsidian/releases/download/dsh-obsidian-v0.3.1/deepseek-ai-dsh-client-ui-obsidian-0.3.1.tgz"
+dsh plugin --profile <profile> add "https://github.com/gxpppp/dsh-obsidian/releases/download/dsh-obsidian-v0.4.0/deepseek-ai-dsh-client-ui-obsidian-0.4.0.tgz"
 
-# Exact GitHub tag; requires a build-capable npm environment because prepare builds from source
-dsh plugin --profile <profile> add "github:gxpppp/dsh-obsidian#dsh-obsidian-v0.3.1"
+# Exact GitHub tag; requires a build-capable npm environment
+dsh plugin --profile <profile> add "github:gxpppp/dsh-obsidian#dsh-obsidian-v0.4.0"
 
-# npm registry, when the package has been published by an account with @deepseek-ai scope access
-dsh plugin --profile <profile> add @deepseek-ai/dsh-client-ui-obsidian@0.3.1
+# npm registry, after publication by an account authorized for @deepseek-ai
+dsh plugin --profile <profile> add @deepseek-ai/dsh-client-ui-obsidian@0.4.0
 
 # Local development checkout
 dsh plugin --profile <profile> add "link:E:\\path\\to\\dsh-obsidian"
 ```
 
-Replace `<profile>` with the profile you actually boot, such as `web` or `headless`; the profile must use DSH `0.1.0-rc.8`. After adding or upgrading, restart that profile. The exact release tag is `dsh-obsidian-v0.3.1`; rc.7 is archived at `legacy/dsh-rc7` / `dsh-obsidian-v0.2.0`, and rc.6 at `legacy/dsh-rc6` / `v0.1.0`. Do not mix host and companion release lines.
+Replace `<profile>` with the profile you actually boot, such as `web` or `headless`. Alpha.2 profiles record `dsh.profile.patchReload`: `web` uses `live`; shipped `headless`, `acp`, `sdk`, and `sdk-minimal` profiles use `startup`. Restart startup-only profiles after adding or changing the plugin.
 
-The host package and Obsidian companion are separate artifacts. The package remains host-only: it does not export a browser client and does not install React, REST API, or HTTP server dependencies.
+Verify the composed tree without booting:
 
-The package is a DSH bundle because `package.json` declares `dsh.bundle.patch` and `cordis.patch.yml` inserts the `ui-obsidian` Cordis row. DSH discovers this metadata during `dsh plugin ... add`; no special Git tag is required for installation.
+```bash
+dsh --profile <profile> --dump-config
+```
 
-Install the Obsidian companion into the vault. From a checkout or unpacked host tarball:
+The output must contain the `ui-obsidian` row.
+
+The host package and Obsidian companion are separate artifacts. Install the companion from a checkout or unpacked host tarball:
 
 ```bash
 node scripts/install-companion.mjs --vault "C:\\path\\to\\vault"
 ```
 
-A standalone `dsh-obsidian-bridge-0.3.1.zip` is also attached to the GitHub Release; extract `main.js` and `manifest.json` into `<vault>/.obsidian/plugins/dsh-obsidian-bridge/`, then enable the plugin. Verify release asset hashes against `SHA256SUMS` before installation.
+A standalone `dsh-obsidian-bridge-0.4.0.zip` is attached to the GitHub Release. Extract only `main.js` and `manifest.json` into `<vault>/.obsidian/plugins/dsh-obsidian-bridge/`, enable the plugin, and reload Obsidian. Verify hashes against `SHA256SUMS` before installation.
 
-Reload Obsidian after installation. The companion stores its token in its own `data.json`; the host reads it automatically only when the configured `vaultPath` resolves to the same canonical vault.
+The companion stores its random token in local plugin `data.json`. The host reads it automatically only when `vaultPath` resolves to the same canonical vault. Host and companion major/minor versions must match; IPC protocol remains version 1.
 
 ## Configuration
 
-The `obsidian` namespace is rendered by DSH settings and applies live:
+The `obsidian` settings namespace applies live when the optional DSH settings provider is mounted:
 
 ```yaml
 obsidian:
@@ -88,78 +98,65 @@ obsidian:
   enabled: true
 ```
 
-The schema rejects relative/nonexistent vaults, invalid sizes, unsafe protected-path entries, invalid attachment folders, and an empty command allowlist when allowlist mode is selected.
+Alpha.2 settings integration uses `ctx.inject(['settings'])` and `settings.installSection(...)`; without a provider the plugin keeps using its profile entry configuration. Secret fields stay write-only on redacted settings surfaces.
 
 ## Development
 
-Requirements: Node.js `>=22.19.0`, npm `>=11`, TypeScript 5.7, DSH `0.1.0-rc.8`, and an Obsidian desktop API-compatible development environment.
+Requirements: Node.js `^22.19.0 || >=24.0.0` (Node 23 is unsupported), npm `>=11`, TypeScript 5.7, DSH `0.1.2-alpha.2`, Cordis `4.0.2`, and Obsidian desktop.
 
 ```bash
-npm install --ignore-scripts
+npm install --ignore-scripts --registry=https://registry.npmjs.org/
 npm run typecheck
 npm run check:companion
 npm test
 npm run build
+npm run verify:release
+npm run smoke:dsh-profile
 npm run install:companion -- --vault "C:\\path\\to\\vault"
-npm run smoke:companion -- --vault "C:\\path\\to\\vault"  # requires Obsidian + companion
+npm run smoke:companion -- --vault "C:\\path\\to\\vault"
 ```
 
-`npm test` compiles the host and tests with `tsconfig.tests.json`, then runs every compiled `*.spec.js` with Node's built-in test runner. The current suite covers 38 tests across activation, DSH IPC, editor context, vault security, revisions, binary limits, cancellation, and path normalization.
+The suite contains 43 tests across activation, alpha.2 attachment contracts, IPC, editor context, Vault security, revisions, size limits, cancellation, and path normalization. CI runs the static/build/package gates on Node 22.19 and 24; release assets are built only after both jobs pass.
 
-## Architecture
+## Architecture and alpha.2 changes
 
-- `src/index.ts`: rc.8 settings, runtime lifecycle, skill facade, and per-agent activation.
+- `src/index.ts`: optional alpha.2 settings service wiring, runtime lifecycle, skill facade, and per-agent activation.
 - `src/activation.ts`: trigger matching, 25-tool scoped injection, approval policy, and reversible disposers.
 - `src/vault/`: canonical path boundary and persistent `VaultFs`.
-- `src/bridge/`: versioned JSON-lines IPC client and vault identity verification.
+- `src/bridge/`: authenticated JSON Lines IPC, version-line enforcement, and vault identity verification.
 - `companion/`: desktop-only Obsidian plugin using a Windows named pipe or Unix socket.
-- `src/tools/`: Vault, knowledge, attachment, link, editor, and command tool definitions.
+- `src/tools/`: Vault, knowledge, attachment, link, editor, and command definitions.
 
-See [ARCHITECTURE.md](ARCHITECTURE.md), [MIGRATION.md](MIGRATION.md), [SECURITY.md](SECURITY.md), and [CHANGELOG.md](CHANGELOG.md) for design, migration, security, and release history.
+Alpha.2 retains `execute(args, exec)`, `exec.signal`, scoped `agent.ctx`, `tools/pre-execute`, `skills.register`, and `systemPrompt.section`. It moves settings installation onto `ctx.settings`, moves `JsonValue` to `@deepseek-ai/dsh-util-values`, renames tool presentation `code` mode to `ptc`, and removes API Proxy. This plugin uses neither presentation-mode names nor API Proxy, so those changes require no compatibility shim.
 
-## Publishing and DSH ecosystem
-
-DeepSeek Harness does not require community plugins to use a special Git tag, npm dist-tag, or pull request to the official Harness repository. The official repository's guidance is to add the GitHub repository topic [`dsh-plugin`](https://github.com/topics/dsh-plugin) for discoverability. This repository has that GitHub Topic and publishes its own plugin-scoped release tags such as `dsh-obsidian-v0.3.1`; the core Harness tag format `dsh-v0.1.0-rc.8` belongs to the Harness repository, not this plugin.
-
-For a release, keep these values synchronized:
-
-- `package.json.version`
-- `companion/manifest.json.version`
-- the companion runtime version and smoke-test expectation
-- the plugin-scoped Git tag `dsh-obsidian-v<version>`
-- the DSH compatibility version documented in this README and `MIGRATION.md`
-
-The package must retain the `dsh.bundle.patch` metadata and `cordis.patch.yml` entry so DSH can discover it as a bundle. Validate with `npm run typecheck`, `npm run check:companion`, `npm test`, `npm run build`, `npm run verify:release`, `npm pack --dry-run`, and an isolated DSH profile dump before pushing a release. Tag pushes build a verified host tarball, companion ZIP, and `SHA256SUMS` through the release workflow. Publishing the scoped npm package additionally requires an npm account authorized for the `@deepseek-ai` scope; GitHub Release assets do not depend on that permission.
+See [ARCHITECTURE.md](ARCHITECTURE.md), [MIGRATION.md](MIGRATION.md), [SECURITY.md](SECURITY.md), and [CHANGELOG.md](CHANGELOG.md).
 
 ## Compatibility
 
 | dsh-obsidian | DSH host | Companion | Obsidian | Status |
 |---|---|---|---|---|
-| `0.3.x` / `dsh-obsidian-v0.3.1` | `0.1.0-rc.8` | `0.3.1` | Desktop `>=1.4.0` | Supported |
-| `0.2.x` / `dsh-obsidian-v0.2.0` | `0.1.0-rc.7` | `0.2.0` | Desktop `>=1.4.0` | Legacy branch `legacy/dsh-rc7` |
-| `0.1.x` / `v0.1.0` | rc.6 line | `0.1.0` | Desktop `>=1.4.0` | Legacy branch `legacy/dsh-rc6` |
-| `0.3.x` | rc.7 or another unsupported DSH version | any | any | Unsupported |
+| `0.4.x` / `dsh-obsidian-v0.4.0` | `0.1.2-alpha.2` | `0.4.x` | Desktop `>=1.4.0` | Supported |
+| `0.3.x` / `dsh-obsidian-v0.3.1` | `0.1.0-rc.8` | `0.3.x` | Desktop `>=1.4.0` | `legacy/dsh-rc8` |
+| `0.2.x` / `dsh-obsidian-v0.2.0` | `0.1.0-rc.7` | `0.2.x` | Desktop `>=1.4.0` | `legacy/dsh-rc7` |
+| `0.1.x` / `v0.1.0` | rc.6 line | `0.1.x` | Desktop `>=1.4.0` | `legacy/dsh-rc6` |
+| any other cross-line combination | unsupported | unsupported | any | Unsupported |
 
-The host and companion major/minor versions must match. The companion also requires protocol version 1 and a canonical vault identity match. `companionToken` is normally read from the matching vault's plugin `data.json`; set it explicitly only when deployment-managed secret configuration is required.
+## DSH alpha.2 operational warnings
 
-## Package identities
+- Optional SQLite session persistence uses schema **20**. It rejects every other schema and ships no migration. Back up DSH home/session data and use a fresh database or explicit persistence-API export/import. This does not affect Obsidian vault files.
+- The official DeepSeek adapter enables `dsh_plugin_packages` by default, sending the active Loader-backed package names and versions outside model messages to the configured official DeepSeek endpoint. Disable the `plugin-package-inventory-deepseek` profile row if deployment policy forbids that inventory. The pi-ai adapter does not use this extension.
+- `dsh_session_log` is a separate extension and is not enabled by this plugin.
+- API Proxy removal is implemented in alpha.2. `dsh-obsidian` has never used API Proxy or `ctx.remote`.
 
-- DSH host package: `@deepseek-ai/dsh-client-ui-obsidian`
-- DSH bundle row: `ui-obsidian`
-- Obsidian companion plugin: `dsh-obsidian-bridge`
-- GitHub discovery topic: `dsh-plugin`
+## Publishing and ecosystem
 
-The official DeepSeek Harness repository does not require a special Git tag, npm dist-tag, or pull request for community plugins. Its explicit ecosystem guidance is the `dsh-plugin` GitHub topic. The core tag `dsh-v0.1.0-rc.8` belongs to the Harness repository; this plugin uses `dsh-obsidian-v0.3.1`.
+Community discovery uses the GitHub topic [`dsh-plugin`](https://github.com/topics/dsh-plugin). This plugin uses annotated tags `dsh-obsidian-v<version>`; core tags such as `dsh-v0.1.2-alpha.2` belong to DeepSeek Harness.
 
-### DSH rc.8 upgrade warning
-
-DSH rc.8 is a prerelease and its release notes explicitly state that the optional SQLite session-persistence storage format is incompatible with the previous build and has no in-place migration. Back up the DSH home/session data before upgrading a real profile, and validate this plugin first with an isolated `DSH_HOME`. This warning does not concern Obsidian vault files or the companion IPC data. The rc.8 API Proxy-to-Remote migration note is marked `proposed`; this plugin uses neither API Proxy nor `ctx.remote`, so no Remote migration is applied here.
+Every release synchronizes package, lockfile, companion manifest, runtime, smoke expectation, documentation, and tag versions. `verify:release` checks the complete DSH lock closure, official registry origins, required tarball contents, and forbidden secret/log/config paths. The tag workflow publishes a host tarball, a two-file companion ZIP, and `SHA256SUMS`. npm publication is not automatic and requires authorized `@deepseek-ai` scope access.
 
 ## Security
 
-The companion never requests a URL. It listens only on an OS-local IPC endpoint, requires a random 32-byte token, uses constant-time token comparison, caps messages at 1 MiB, and verifies the canonical vault identity on every session. Server-side request URLs elsewhere in the project are not used by the current main branch.
-
-Vault tools fail closed on traversal, absolute paths, control characters, protected dot directories, symlink/junction escapes, stale revisions, oversized payloads, unauthorized commands, and cancellation.
+The companion never requests a URL. It listens only on OS-local IPC, requires a random 32-byte token, uses constant-time comparison, caps messages at 1 MiB, and verifies canonical vault identity before operations. Vault tools fail closed on traversal, absolute paths, control characters, protected dot directories, symlink/junction escapes, stale revisions, oversized payloads, unauthorized commands, and cancellation.
 
 ## License
 

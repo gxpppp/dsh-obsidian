@@ -1,6 +1,7 @@
 import { basename, extname, posix } from 'node:path'
 import { AttachmentId, type ImageAttachmentRef, type ImageMediaType } from '@deepseek-ai/dsh-attachment'
-import { defineTool, type JsonValue, type ToolDefinition } from '@deepseek-ai/dsh-tools'
+import { defineTool, type ToolDefinition } from '@deepseek-ai/dsh-tools'
+import type { JsonValue } from '@deepseek-ai/dsh-util-values'
 import { normalizeVaultPath } from '../vault/vaultPaths.ts'
 import { requireFs, type ToolHost } from './context.ts'
 import { canUseOfflineFallback, openObjectOutput, safeModelText } from './helpers.ts'

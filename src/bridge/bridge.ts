@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises'
 import { createConnection } from 'node:net'
 import { join } from 'node:path'
 import type { BridgeMode } from '../settings/schema.ts'
+import { PLUGIN_VERSION } from '../version.ts'
 import {
   BRIDGE_PROTOCOL_VERSION,
   DEFAULT_REQUEST_TIMEOUT_MS,
@@ -133,6 +134,9 @@ export class ObsidianBridge {
     if (!vaultIdentityMatches(expected, hello.vault)) {
       throw new BridgeError('VAULT_MISMATCH', 'The companion is serving a different Obsidian vault')
     }
+    if (!versionsCompatible(PLUGIN_VERSION, hello.pluginVersion)) {
+      throw new BridgeError('PROTOCOL_MISMATCH', `Companion ${hello.pluginVersion} is not compatible with host ${PLUGIN_VERSION}; install matching major/minor versions`)
+    }
     return hello
   }
 
@@ -240,6 +244,15 @@ export class ObsidianBridge {
   async listCommands(signal?: AbortSignal): Promise<Array<{ id: string; name: string }>> { return (await this.call<{ commands: Array<{ id: string; name: string }> }>('commands.list', {}, signal)).commands }
   async executeCommand(id: string, signal?: AbortSignal): Promise<void> { await this.call('commands.execute', { id }, signal) }
   async notice(message: string, signal?: AbortSignal): Promise<void> { await this.call('notice', { message }, signal) }
+}
+
+function versionsCompatible(hostVersion: string, companionVersion: string): boolean {
+  const host = hostVersion.split('.')
+  const companion = companionVersion.split('.')
+  return host.length === 3 && companion.length === 3
+    && /^\d+$/.test(host[0]!) && /^\d+$/.test(host[1]!)
+    && /^\d+$/.test(companion[0]!) && /^\d+$/.test(companion[1]!)
+    && host[0] === companion[0] && host[1] === companion[1]
 }
 
 function fromPayload(payload: BridgeErrorPayload): BridgeError {

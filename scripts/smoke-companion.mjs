@@ -43,7 +43,7 @@ try {
   const status = await bridge.status()
   assert.equal(status.ok, true)
   assert.equal(status.channel, 'companion')
-  assert.equal(status.pluginVersion, '0.3.1')
+  assert.equal(status.pluginVersion, '0.4.0')
   assert.equal(status.vaultMatch, true)
   record('hello/status', { protocolVersion: status.protocolVersion, obsidianVersion: status.obsidianVersion })
 
@@ -52,7 +52,7 @@ try {
   assert.ok(commands.some((command) => command.id === 'app:reload'))
   record('commands.list', { count: commands.length })
 
-  await bridge.notice('DSH Obsidian 0.3.1 smoke test')
+  await bridge.notice('DSH Obsidian 0.4.0 smoke test')
   record('notice', true)
 
   await bridge.openNote({ path: sourcePath, line: 6 })

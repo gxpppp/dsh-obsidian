@@ -23,6 +23,7 @@ interface MockHandle {
 
 let root = ''
 let mock: MockHandle
+let mockPluginVersion = '0.4.0'
 
 before(async () => {
   root = mkdtempSync(join(tmpdir(), 'dsh-obsidian-bridge-test-'))
@@ -61,7 +62,7 @@ function handleSocket(socket: Socket, requests: BridgeRequestEnvelope[], vaultPa
     if (request.method === 'hello') {
       respond(socket, request.requestId, true, {
         protocolVersion: BRIDGE_PROTOCOL_VERSION,
-        pluginVersion: '0.3.1',
+        pluginVersion: mockPluginVersion,
         obsidianVersion: '1.13.1',
         vault: canonicalVaultIdentity(vaultPath),
         capabilities: ['editor.state', 'editor.edit'],
@@ -122,6 +123,20 @@ describe('ObsidianBridge IPC v1', () => {
       path: 'notes/active.md', from: 6, to: 11, text: 'vault',
       revision: 'a'.repeat(64), expectedText: 'world',
     })
+  })
+
+  it('rejects a companion from another release line', async () => {
+    mockPluginVersion = '0.3.1'
+    try {
+      await assert.rejects(bridgeFor().activeState(), (error: unknown) => {
+        assert.ok(error instanceof BridgeError)
+        assert.equal(error.code, 'PROTOCOL_MISMATCH')
+        assert.match(error.message, /matching major\/minor versions/)
+        return true
+      })
+    } finally {
+      mockPluginVersion = '0.4.0'
+    }
   })
 
   it('rejects a wrong token with a structured error', async () => {

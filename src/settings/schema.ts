@@ -1,7 +1,6 @@
 import { existsSync, realpathSync, statSync } from 'node:fs'
 import { isAbsolute } from 'node:path'
 import z from '@deepseek-ai/schemastery'
-import { settingsNamespace } from '@deepseek-ai/dsh-settings'
 
 export type BridgeMode = 'auto' | 'fs' | 'companion'
 export type ApprovalMode = 'none' | 'dangerous' | 'writes' | 'all'
@@ -97,4 +96,4 @@ export function validateConfig(config: Config): void {
   }
 }
 
-export const OBSIDIAN_SETTINGS_NAMESPACE = settingsNamespace('obsidian')
+export const OBSIDIAN_SETTINGS_NAMESPACE = 'obsidian'

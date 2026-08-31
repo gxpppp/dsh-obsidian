@@ -22,8 +22,10 @@ Text and binary writes are atomic. Per-path queues serialize updates. Read resul
 
 ## Destructive operations
 
-Deletion moves to protected internal trash by default. Permanent deletion, writes when configured, dangerous commands, and all commands under `approvalMode` are handled by the DSH rc.8 `tools/pre-execute` approval pipeline. Unknown commands and commands returning false fail closed.
+Deletion moves to protected internal trash by default. Permanent deletion, writes when configured, dangerous commands, and all commands under `approvalMode` are handled by the DSH alpha.2 `tools/pre-execute` approval pipeline. Unknown commands and commands returning false fail closed.
 
 ## Sensitive data
 
-The old activation log that stored message prefixes was removed. Structured logger messages contain only event type and agent id. Companion settings persist the token locally in Obsidian plugin data; the host settings schema marks an explicitly configured token as secret.
+The old activation log that stored message prefixes is removed and excluded from packages. Structured logger messages contain only event type and agent id. Companion settings persist the token locally in Obsidian plugin data; the host settings schema marks an explicitly configured token as secret. Release verification rejects `data.json`, activation logs, settings files, environment files, test vaults, and release work directories from the npm artifact.
+
+DSH alpha.2's official DeepSeek adapter separately enables the `dsh_plugin_packages` Loader package inventory by default. It contains package names and versions, not vault content or companion tokens, and remains outside model messages. Deployments that prohibit this metadata must disable the `plugin-package-inventory-deepseek` profile row.

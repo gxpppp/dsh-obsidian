@@ -14,6 +14,7 @@ import {
   TFile,
   normalizePath,
 } from 'obsidian'
+import { PLUGIN_VERSION } from '../../src/version.ts'
 import {
   BRIDGE_PROTOCOL_VERSION,
   MAX_MESSAGE_BYTES,
@@ -40,7 +41,6 @@ interface EditorSnapshot {
   openTabs: string[]
 }
 
-const PLUGIN_VERSION = '0.3.1'
 const DEFAULT_SETTINGS: BridgeSettings = { token: '', enabled: true, ipcName: '' }
 const CAPABILITIES = [
   'editor.state', 'editor.edit', 'editor.open', 'search', 'metadata.get',

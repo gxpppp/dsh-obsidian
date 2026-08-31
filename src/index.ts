@@ -2,7 +2,7 @@ import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-system-prompt'
 import type {} from '@deepseek-ai/dsh-tools'
 import type { Agent } from '@deepseek-ai/dsh-agent'
-import { installSettingsSection } from '@deepseek-ai/dsh-settings'
+import type {} from '@deepseek-ai/dsh-settings'
 import { Config, DEFAULT_CONFIG, OBSIDIAN_SETTINGS_NAMESPACE, validateConfig, type Config as PluginConfig } from './settings/schema.ts'
 import { VaultFs } from './vault/vaultFs.ts'
 import { detectVaultPath } from './vault/detect.ts'
@@ -22,20 +22,26 @@ export interface RuntimeState {
 
 function createRuntime(initial: PluginConfig): RuntimeState {
   let current = () => initial
-  let vaultPath: string | undefined
+  let vaultKey: string | undefined
   let vault: VaultFs | null = null
   let bridge: ObsidianBridge | null = null
   const state: RuntimeState = {
     config: () => current(),
     vault: () => {
-      const nextPath = current().vaultPath
-      if (nextPath !== vaultPath) {
-        vaultPath = nextPath
-        vault = nextPath ? new VaultFs(nextPath, {
-          maxTextBytes: current().maxTextBytes,
-          maxBinaryBytes: current().maxAttachmentBytes,
-          protectedPaths: current().protectedPaths,
-        }) : null
+      const config = current()
+      if (config.vaultPath === undefined || config.vaultPath === '') {
+        vaultKey = undefined
+        vault = null
+        return null
+      }
+      const key = JSON.stringify([config.vaultPath, config.maxTextBytes, config.maxAttachmentBytes, config.protectedPaths])
+      if (key !== vaultKey) {
+        vaultKey = key
+        vault = new VaultFs(config.vaultPath, {
+          maxTextBytes: config.maxTextBytes,
+          maxBinaryBytes: config.maxAttachmentBytes,
+          protectedPaths: config.protectedPaths,
+        })
       }
       return vault
     },
@@ -49,7 +55,7 @@ function createRuntime(initial: PluginConfig): RuntimeState {
       return bridge
     },
   }
-  Object.defineProperty(state, 'setConfig', { value: (source: () => PluginConfig) => { current = source; vault = null; vaultPath = undefined; bridge = null } })
+  Object.defineProperty(state, 'setConfig', { value: (source: () => PluginConfig) => { current = source; vault = null; vaultKey = undefined; bridge = null } })
   return state
 }
 
@@ -84,10 +90,12 @@ export function apply(ctx: Context, config?: PluginConfig): void {
       () => makeHost(ctx, runtime),
     )
   }
-  installSettingsSection(ctx, OBSIDIAN_SETTINGS_NAMESPACE, Config, initial, {
-    setSource,
-    onChange: sync,
-    validate: validateConfig,
+  ctx.inject(['settings'], (settingsCtx) => {
+    settingsCtx.settings.installSection(ctx, OBSIDIAN_SETTINGS_NAMESPACE, Config, initial, {
+      setSource,
+      onChange: sync,
+      validate: validateConfig,
+    })
   })
   sync()
   ctx.effect(() => () => {

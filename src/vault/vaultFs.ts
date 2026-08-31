@@ -206,6 +206,7 @@ export class VaultFs {
       const st = await fs.stat(abs)
       return { path: normalized, data, revision: this.revision(data), size: st.size, mtime: st.mtimeMs }
     } catch (error) {
+      if (signal?.aborted) throw signal.reason ?? new Error('Operation aborted')
       if (error instanceof VaultError) throw error
       if ((error as NodeJS.ErrnoException).code === 'ENOENT') throw new VaultError('NOT_FOUND', `Vault path not found: ${normalized}`, { path: normalized, cause: error })
       throw new VaultError('IO', `Unable to read ${normalized}`, { path: normalized, cause: error })

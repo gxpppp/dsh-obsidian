@@ -38,4 +38,4 @@ Text and binary writes use a same-directory temporary file, `fsync`, and rename.
 - `linkInsertTool.ts`: validated companion link insertion.
 - `editor.ts`: active editor, inline edit, open, command list/execute, notice.
 
-All tools use the DSH rc.8 `execute(args, exec)` contract and propagate `exec.signal`. The activation policy uses `tools/pre-execute` to apply command and write approval rules.
+All tools use the DSH alpha.2 `execute(args, exec)` contract and propagate `exec.signal`. The activation policy uses `tools/pre-execute` to apply command and write approval rules. Alpha.2 settings are attached through the optional `ctx.inject(['settings'])` service path, and tool output values use the shared `@deepseek-ai/dsh-util-values` vocabulary.

@@ -1,4 +1,4 @@
-# dsh-obsidian bundle patch for DSH 0.1.0-rc.8. This inserts only the host
+# dsh-obsidian bundle patch for DSH 0.1.2-alpha.2. This inserts only the host
 # plugin row into the selected profile; it does not install the Obsidian
 # companion, which must be installed separately into each vault. Applied as a
 # profile bundle layer through package.json's `dsh.bundle.patch` metadata.

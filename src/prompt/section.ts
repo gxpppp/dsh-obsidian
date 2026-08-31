@@ -1,4 +1,4 @@
-export const SECTION_ORDER = 150
+export const SECTION_ORDER = 3000
 
 export function buildObsidianGuidance(vaultPath: string | undefined, mode: string): string {
   const vaultLine = vaultPath ? `Vault root is configured: ${vaultPath}.` : 'Vault root is not configured.'

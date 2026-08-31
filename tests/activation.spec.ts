@@ -111,6 +111,7 @@ describe('activateAgent', () => {
     assert.deepEqual(listeners, ['tools/pre-execute'])
     const section = sections[0] as { name: string; order: number; text: unknown }
     assert.equal(section.name, 'plugin:obsidian')
+    assert.equal(section.order, 3000)
     assert.equal(typeof section.text, 'function')
     dispose()
     assert.deepEqual(registered, [])

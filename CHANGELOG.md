@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.0
+
+- Upgrade the host compatibility line to DSH `0.1.2-alpha.2`, Cordis `4.0.2`, and Schemastery `3.18.2`.
+- Migrate optional settings to `ctx.settings.installSection` and canonical tool JSON values to `@deepseek-ai/dsh-util-values`.
+- Preserve the 25-tool host-only surface and companion IPC protocol 1 while enforcing matching host/companion major-minor versions.
+- Add alpha.2 attachment contract coverage and preserve caller cancellation reasons through binary Vault reads.
+- Refresh the cached Vault filesystem when live settings change size limits or protected paths, not only when the vault path changes.
+- Place Obsidian tool guidance at prompt order 3000, after built-in tool guidance and before the alpha.2 PTC SDK section.
+- Verify the complete DSH dependency closure, actual package contents, exact alpha.2 profile composition, and both supported Node lines before release.
+- Archive the final rc.8 implementation on `legacy/dsh-rc8` and document alpha.2 PTC, API Proxy removal, profile reload, SQLite schema 20, and plugin-inventory behavior.
+
 ## 0.3.1
 
 - Keep the DSH `0.1.0-rc.8` compatibility line and companion IPC protocol version 1.
